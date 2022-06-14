@@ -7,8 +7,6 @@ import requests
 from bs4 import BeautifulSoup
 from config import *
 
-''' Required functions '''
-
 
 def get_time():
     delta = timedelta(hours=3, minutes=0)
@@ -23,9 +21,12 @@ def normalize(s) -> str:
     return str(s).replace('  ', '').replace('\n', '')
 
 
-# log in on schools.by
-# return string if Error else tuple(user_url,requests.session())
 def log_in(login, password):
+    r"""Log in on schools.by. Returns: string if Error else tuple(user_url: string, class:`Session`).
+
+    :param login: String with login.
+    :param password: String with password.
+    """
     s = requests.session()
     # response
     r = None
@@ -66,6 +67,12 @@ def log_in(login, password):
     return user_url, s
 
 def get_marks(login, password, previous_quarter=False) -> list:
+    r"""Getting marks. Returns: list of strings with messages to send.
+
+    :param login: String with login.
+    :param password: String with password.
+    :param previous_quarter: Bool. True if you need to get info about previous quarter.
+    """
     c_num = PREV_C_NUM if previous_quarter else C_NUM
     start_from = PREV_START_FROM if previous_quarter else START_FROM
     data = log_in(login, password)
@@ -109,7 +116,7 @@ def get_marks(login, password, previous_quarter=False) -> list:
                         lesson = row.find(class_='lesson')
                         lesson = normalize(lesson.find('span').text)
                         # removing numeration
-                        lesson = lesson[lesson.find('.')+1:]
+                        lesson = lesson[lesson.find('.')+1:].strip()
                         for el in mark:
                             if str(el).isdigit():
                                 el = int(el)
@@ -121,7 +128,7 @@ def get_marks(login, password, previous_quarter=False) -> list:
                     lesson = row.find(class_='lesson')
                     lesson = normalize(lesson.find('span').text)
                     # removing numeration
-                    lesson = lesson[lesson.find('.') + 1:]
+                    lesson = lesson[lesson.find('.') + 1:].strip()
                     lessons.add(lesson)
         # go to next week
         if soup.find(class_='next'):
@@ -166,6 +173,11 @@ def get_marks(login, password, previous_quarter=False) -> list:
 
 
 def get_timetable(login, password) -> str:
+    r"""Getting timetable of current week. Returns: string of message to send.
+
+    :param login: String with login.
+    :param password: String with password.
+    """
     result_message = 'Расписание:\n'
     data = log_in(login, password)
 
@@ -191,7 +203,7 @@ def get_timetable(login, password) -> str:
         if row.find(class_='mark_box'):
             lesson = normalize(row.find(class_='lesson').text)
             # removing numeration
-            lesson = str(lesson[lesson.find('.')+1:])
+            lesson = str(lesson[lesson.find('.')+1:]).strip()
             # if the string consists of more than just spaces
             if lesson.replace(' ', ''):
                 # deleting duplicate lessons

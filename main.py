@@ -1,54 +1,51 @@
+# noinspection PyPackageRequirements
 import telebot
-from datetime import datetime, date, time, timedelta, timezone
-from time import sleep
-import math
 import numpy as np
 from config import *
 from functions import *
+from datetime import datetime, date, time, timedelta, timezone
+import schedule
 
 
 '''Initialization'''
 
 # telegram bot
-bot = telebot.TeleBot(settings['token'])
+bot = telebot.TeleBot(settings['token'], threaded=False)
 
 # users database
-# TODO: add sql
+# TODO: add SQL/dumps
 users_dict = np.load('bd.npy', allow_pickle=True).item()
 users_dict = dict(users_dict)
 def update_database():
     np.save('bd.npy', users_dict)
 
 
+# cooldown info
+cooldown = {}
+requests_count = {}
+def clear_cooldown():
+    global cooldown, requests_count
+    cooldown = {}
+    requests_count = {}
+schedule.every().day.at("00:00").do(clear_cooldown)
+
+
 # templates
-keyboard1 = telebot.types.ReplyKeyboardMarkup(True, True)
+keyboard1 = telebot.types.ReplyKeyboardMarkup(True, False)
 keyboard1.row('Информация', 'Расписание')
 keyboard1.row('Получить оценки', 'Прошлая четверть')
 keyboard1.row('Ввести данные', 'Узнать свои данные')
 
 
 ''' Bot events '''
-# any slash commands trigger buttons
-@bot.message_handler(commands=['start'])
+# any slash command triggers Keyboard
+@bot.message_handler(commands=['start', 'help', 'info'])
 def info_message(message):
-    s1 = 'Привет!'
-    bot.send_message(message.chat.id, s1, reply_markup=keyboard1)
-
-
-@bot.message_handler(commands=['help'])
-def info_message(message):
-    s1 = 'Привет!'
-    bot.send_message(message.chat.id, s1, reply_markup=keyboard1)
-
-
-@bot.message_handler(commands=['info'])
-def info_message(message):
-    s1 = 'Привет!'
-    bot.send_message(message.chat.id, s1, reply_markup=keyboard1)
+    bot.send_message(message.chat.id, 'Привет!', reply_markup=keyboard1)
 
 
 # main commands
-to_send_logs = []
+to_send_logs = []  # list of logs
 @bot.message_handler(content_types=['text'])
 def repeat_all_messages(message):
     formatted_message = str(message.text).lower()
@@ -57,6 +54,7 @@ def repeat_all_messages(message):
     if message.from_user.id not in users_dict:
         users_dict.update({message.from_user.id: ['None', 'None', 0]})
 
+    # chat checking
     if message.from_user.id != message.chat.id:
         bot.send_message(message.chat.id, 'Бот не доступен для использования в чатах. Используйте личные сообщения')
 
@@ -64,13 +62,22 @@ def repeat_all_messages(message):
     global to_send_logs
     if to_send_logs:
         for log in to_send_logs:
-            bot.send_message(LOG_CHAT_ID, str(log))
+            if str(log):
+                bot.send_message(LOG_CHAT_ID, str(log))
         to_send_logs = []
+
+    # cooldown and requests count
+    if message.from_user.id in cooldown:
+        if datetime.now() < cooldown[message.from_user.id] and (formatted_message == 'расписание' or formatted_message == 'получить оценки' or formatted_message == 'прошлая четверть'):
+            seconds = (cooldown[message.from_user.id] - datetime.now()).total_seconds()
+            bot.send_message(message.chat.id, f'Подождите {round(seconds)} секунд перед повторным запросом')
+            return
+    if message.from_user.id not in requests_count:
+        requests_count[message.from_user.id] = 0
 
     # dev commands
     if message.from_user.id == OWNER_ID:
         if formatted_message == 'пользователи':
-            # TODO: delete test user from db
             bot.send_message(message.chat.id, f'Использует {len(users_dict) - 1}')
             return
         elif formatted_message[:8] == 'рассылка':
@@ -86,9 +93,37 @@ def repeat_all_messages(message):
                     print(e)
             bot.send_message(message.chat.id, f'Конец. Успешно {correct_messages_counter}/{messages_counter}')
             return
-        elif formatted_message == 'бд':
-            bot.send_message(message.chat.id, str(users_dict))
-            return
+        elif formatted_message[:3] == 'бан':
+            if len(formatted_message.split(' ')) == 2:
+                ban_id = formatted_message[formatted_message.find(' ')+1:]
+                if ban_id.isdigit():
+                    if int(ban_id) in users_dict:
+                        users_dict[int(ban_id)][2] = -1
+                        update_database()
+                        bot.send_message(message.chat.id, f'Забанен {ban_id}')
+                        return
+        elif formatted_message[:5] == 'анбан':
+            if len(formatted_message.split(' ')) == 2:
+                ban_id = formatted_message[formatted_message.find(' ')+1:]
+                if ban_id.isdigit():
+                    if int(ban_id) in users_dict:
+                        users_dict[int(ban_id)][2] = 0
+                        update_database()
+                        bot.send_message(message.chat.id, f'Разбанен {ban_id}')
+                        return
+        elif formatted_message[:5] == 'сброс':
+            if len(formatted_message.split(' ')) == 2:
+                reset_id = formatted_message[formatted_message.find(' ')+1:]
+                if reset_id.isdigit():
+                    if int(reset_id) in users_dict:
+                        requests_count[int(reset_id)] = 0
+                        bot.send_message(message.chat.id, f'Сброшен {reset_id}')
+                        return
+
+    # bans
+    if users_dict[message.from_user.id][2] == -1:
+        bot.send_message(message.chat.id, 'Вы были заблокированы. Для подробностей обращайтесь к @irongun')
+        return
 
     # default commands
     if formatted_message == 'информация':
@@ -98,14 +133,21 @@ def repeat_all_messages(message):
         bot.send_message(message.chat.id, s2, reply_markup=keyboard1)
     elif formatted_message == 'получить оценки' or formatted_message == 'прошлая четверть':
         if users_dict[message.from_user.id][0] != 'None':
+            if requests_count[message.from_user.id] > 20:
+                bot.send_message(message.chat.id,
+                                 'Слишком много запросов(>20) за день. Если возникла какая-то ошибка, напишите @irongun')
+                return
             bot.send_message(message.chat.id,
                              'Получение данных. Ожидайте до 20 секунд... Если бот долго не отвечает, попробуйте запросить оценки ещё раз')
             try:
                 marks = get_marks(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1],
                                   formatted_message == 'прошлая четверть')
+                cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=30)
+                requests_count[message.from_user.id] += 1
             except Exception as e:
                 print(e)
-                bot.send_message(LOG_CHAT_ID, e)
+                if str(e):
+                    bot.send_message(LOG_CHAT_ID, str(e))
                 bot.send_message(message.chat.id, 'Ошибка EM. Проверьте введённые данные или напишите @irongun')
                 return
             for mark_message in marks:
@@ -118,13 +160,20 @@ def repeat_all_messages(message):
                              reply_markup=keyboard1)
     elif formatted_message == 'расписание':
         if users_dict[message.from_user.id][0] != 'None':
+            if requests_count[message.from_user.id] > 20:
+                bot.send_message(message.chat.id,
+                                 'Слишком много запросов(>20) за день. Если возникла какая-то ошибка, напишите @irongun')
+                return
             bot.send_message(message.chat.id,
                              'Получение расписания. Если бот долго не отвечает, попробуйте запросить расписание ещё раз')
             try:
                 timetable = get_timetable(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1])
+                cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=10)
+                requests_count[message.from_user.id] += 1
             except Exception as e:
                 print(e)
-                bot.send_message(LOG_CHAT_ID, e)
+                if str(e):
+                    bot.send_message(LOG_CHAT_ID, str(e))
                 bot.send_message(message.chat.id, 'Ошибка ER. Проверьте введённые данные или напишите @irongun')
                 return
             bot.send_message(message.chat.id, timetable)
@@ -165,11 +214,4 @@ def repeat_all_messages(message):
     update_database()
 
 
-bot.polling(none_stop=True, interval=0)
-# # loop
-# while True:
-#     try:
-#         # loop
-#         bot.polling(none_stop=True, interval=0)
-#     except Exception as e:
-#         to_send_logs.append(e)
+bot.polling(none_stop=True, timeout=10)
