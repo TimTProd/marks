@@ -31,7 +31,7 @@ def log_in(login, password):
     # response
     r = None
 
-    # this guy works only on the second call, so we do it twice
+    # twice get
     try:
         r = s.get('https://schools.by/login')
     except requests.exceptions.ConnectionError as e:
