@@ -1,5 +1,6 @@
 <h1 align="center">Marks</h1>
 <br>
+
 Marks - это бот для получения оценок с [schools](https://schools.by/) на Python.
 
  - **Трейлер**: https://youtu.be/t9WYEowmDxU
