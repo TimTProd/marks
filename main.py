@@ -10,10 +10,12 @@ import schedule
 '''Initialization'''
 
 # telegram bot
-bot = telebot.TeleBot(settings['token'], threaded=False)
+bot = telebot.TeleBot(TOKEN, threaded=False)
 
 # users database
 # TODO: add SQL/dumps
+# users_dict = {***REMOVED***: ['None', 'None', 0]}
+# np.save('bd.npy', users_dict)
 users_dict = np.load('bd.npy', allow_pickle=True).item()
 users_dict = dict(users_dict)
 def update_database():
@@ -76,7 +78,7 @@ def repeat_all_messages(message):
         requests_count[message.from_user.id] = 0
 
     # dev commands
-    if message.from_user.id == OWNER_ID:
+    if message.from_user.id == ***REMOVED***:
         if formatted_message == 'пользователи':
             bot.send_message(message.chat.id, f'Использует {len(users_dict) - 1}')
             return
@@ -122,20 +124,20 @@ def repeat_all_messages(message):
 
     # bans
     if users_dict[message.from_user.id][2] == -1:
-        bot.send_message(message.chat.id, 'Вы были заблокированы. Для подробностей обращайтесь к @irongun')
+        bot.send_message(message.chat.id, 'Вы были заблокированы')
         return
 
     # default commands
     if formatted_message == 'информация':
-        s1 = 'Привет! Я бот для получения и анализа оценок со schools.by. В данный момент я могу получать и отправлять списком твои оценки, а так же рассчитать твой средний балл. Я НЕ показываю, по каким предметам стоит н/з'
-        s2 = 'По всем вопросам и предложениям: @irongun'
+        s1 = 'Привет! Я бот для получения и анализа оценок со schools.by. Я НЕ могу отправить текст песни моргенштерна "Я когда ни-будь уйду", но если очень захочу то смогу'
+        s2 = 'да нормально'
         bot.send_message(message.chat.id, s1)
         bot.send_message(message.chat.id, s2, reply_markup=keyboard1)
     elif formatted_message == 'получить оценки' or formatted_message == 'прошлая четверть':
         if users_dict[message.from_user.id][0] != 'None':
             if requests_count[message.from_user.id] > 20:
                 bot.send_message(message.chat.id,
-                                 'Слишком много запросов(>20) за день. Если возникла какая-то ошибка, напишите @irongun')
+                                 'Слишком много запросов(>20) за день')
                 return
             bot.send_message(message.chat.id,
                              'Получение данных. Ожидайте до 20 секунд... Если бот долго не отвечает, попробуйте запросить оценки ещё раз')
@@ -148,12 +150,12 @@ def repeat_all_messages(message):
                 print(e)
                 if str(e):
                     bot.send_message(LOG_CHAT_ID, str(e))
-                bot.send_message(message.chat.id, 'Ошибка EM. Проверьте введённые данные или напишите @irongun')
+                bot.send_message(message.chat.id, 'Ошибка №69. Проверьте введённые данные или напишите в компанию ***REMOVED***')
                 return
             for mark_message in marks:
                 bot.send_message(message.chat.id, mark_message)
             bot.send_message(message.chat.id,
-                             'Оценки собраны за четверть. За триместр оценки могут отличаться.\nДля ИМ-ов. Триместры по следующим предметам(но это не точно): астрономия, бел. лит., бел. яз., география, дп/мп, рус. лит., рус. яз., черчение')
+                             'Оценки собраны за четверть')
             bot.send_message(LOG_CHAT_ID, f'Использовал {message.from_user.id}')
         else:
             bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
@@ -162,7 +164,7 @@ def repeat_all_messages(message):
         if users_dict[message.from_user.id][0] != 'None':
             if requests_count[message.from_user.id] > 20:
                 bot.send_message(message.chat.id,
-                                 'Слишком много запросов(>20) за день. Если возникла какая-то ошибка, напишите @irongun')
+                                 'Слишком много запросов(>20) за день.')
                 return
             bot.send_message(message.chat.id,
                              'Получение расписания. Если бот долго не отвечает, попробуйте запросить расписание ещё раз')
@@ -174,7 +176,7 @@ def repeat_all_messages(message):
                 print(e)
                 if str(e):
                     bot.send_message(LOG_CHAT_ID, str(e))
-                bot.send_message(message.chat.id, 'Ошибка ER. Проверьте введённые данные или напишите @irongun')
+                bot.send_message(message.chat.id, 'Ошибка ER (прям как у стиральной машины). Проверьте введённые данные или напишите в компанию ***REMOVED***')
                 return
             bot.send_message(message.chat.id, timetable)
             bot.send_message(LOG_CHAT_ID, f'Получил расписание {message.from_user.id}')
@@ -204,12 +206,12 @@ def repeat_all_messages(message):
             bot.send_message(message.chat.id, 'Данные успешно обновлены', reply_markup=keyboard1)
         else:
             bot.send_message(message.chat.id,
-                             'Неверный формат. Попробуйте ещё-раз. Логин и пароль вводятся через пробел',
+                             'Неверный формат. Попробуйте ещё раз. Логин и пароль вводятся через пробел',
                              reply_markup=keyboard1)
             bot.delete_message(message.chat.id, message.message_id)
     else:
         bot.send_message(message.chat.id,
-                         'Я тебя не понимаю :( Если ты считаешь, что я должен тебе отвечать на такие сообщения, напиши @irongun')
+                         'Че?')
 
     update_database()
 

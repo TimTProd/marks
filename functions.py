@@ -6,6 +6,8 @@ import locale
 import requests
 from bs4 import BeautifulSoup
 from config import *
+from mechanize import Browser
+
 
 
 def get_time():
@@ -27,44 +29,76 @@ def log_in(login, password):
     :param login: String with login.
     :param password: String with password.
     """
-    s = requests.session()
+
+    br = Browser()
+    br.set_handle_equiv(False)
+    br.addheaders = [('User-agent',
+                        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/605.1.15 (KHTML, like Gecko) '
+                        'Version/11.1.2 Safari/605.1.15')]
+    br.set_handle_robots(False)
+    br.set_proxies({"http": "194.158.203.14:80"})
     # response
-    r = None
+    # r = None
 
     # twice get
     try:
-        r = s.get('https://schools.by/login')
-    except requests.exceptions.ConnectionError as e:
+        br.open('https://schools.by/login')
+    except:
         try:
-            r = s.get('https://schools.by/login')
-        except requests.exceptions.ConnectionError as e:
-            return 'Ошибка соединения, попробуйте ещё раз или напишите @irongun. Возможно, schools.by временно не работает'
+            br.open('https://schools.by/login')
+        except:
+            return 'Ошибка соединения, попробуйте ещё раз. Возможно, schools.by временно не работает'
 
-    csrf = r.cookies['csrftoken']
+    # csrf = r.cookies['csrftoken']
 
     # request description
+    '''
     data = {
         'csrfmiddlewaretoken': csrf,
         'username': login,
         'password': password
     }
-    headers = sample_headers
-    cookies = sample_cookies
-    cookies.update({'csrftoken': csrf})
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+        'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-User': '?1',
+        'Sec-Fetch-Dest': 'document',
+        'Referer': 'https://schools.by/login',
+        'Accept-Encoding': 'gzip, deflate',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Content-Length': '152',
+        'Cache-Control': 'max-age=0',
+        'Sec-Ch-Ua': '',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'Sec-Ch-Ua-Platform': '""',
+        'Upgrade-Insecure-Requests': '1',
+        'Origin': 'https://schools.by',
+        'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    cookies = {'csrftoken': csrf, 'slc_cookie':'7BslcMakeBetter%7D'}
+    # cookies.update({'csrftoken': csrf})
+    '''
     sleep(.5)
+
 
     # link to user's profile
     user_url = 'https://schools.by/login'
     try:
         # redirection to user's profile
-        r = s.post('https://schools.by/login', data=data, headers=headers, cookies=cookies)
-        user_url = r.url
-    except requests.exceptions.ConnectionError as e:
-        return 'Ошибка соединения/получения данных, попробуйте ещё раз или напишите @irongun'
+        br.open('https://schools.by/login')
+        br.select_form(nr=0)
+        br.form["username"] = login
+        br.form["password"] = password
+        br.submit()
+        user_url = br.geturl()
+    except:
+        return 'Ошибка соединения/получения данных, попробуйте ещё раз, или напишите в компанию ***REMOVED***'
     if user_url == 'https://schools.by/login':
-        return 'Неверные данные авторизации'
+        return 'Неверные данные авторизации ' 
     sleep(.5)
-    return user_url, s
+    return user_url, br
 
 def get_marks(login, password, previous_quarter=False) -> list:
     r"""Getting marks. Returns: list of strings with messages to send.
@@ -81,20 +115,22 @@ def get_marks(login, password, previous_quarter=False) -> list:
     if type(data) == str:
         return [data]
     # link to user's profile, requests.session()
-    user_url, s = data
-    r = None
+    user_url, br = data
+    # r = None
 
     try:
-        r = s.get(user_url + '/dnevnik/quarter/' + c_num + '/week/' + start_from)
-    except requests.exceptions.ConnectionError as e:
-        return ['Ошибка соединения E4, попробуйте ещё раз или напишите @irongun']
+        br.open(user_url + '/dnevnik/quarter/' + c_num + '/week/' + start_from)
+    except:
+        return ['Ошибка соединения E4, попробуйте ещё раз или пишите в компанию ***REMOVED***']
 
     # {'lesson': [9,9,10]}
     marks = {}
     lessons = set()
 
+    sleep(1)
+
     while True:
-        soup = BeautifulSoup(r.text, 'html.parser')
+        soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
         rows = soup.find_all('tr')
         for row in rows:
             # checking if it's lesson
@@ -135,9 +171,9 @@ def get_marks(login, password, previous_quarter=False) -> list:
             next_week = soup.find(class_='next').get('send_to')
             try:
                 next_week = next_week[next_week.find('dnevnik')-1:]
-                r = s.get(user_url + next_week)
-            except requests.exceptions.ConnectionError as e:
-                return ['Ошибка соединения E5, попробуйте ещё раз или напишите @irongun']
+                br.open(user_url + next_week)
+            except:
+                return ['Ошибка соединения E5, попробуйте ещё раз или пишите в компанию ***REMOVED***']
         else:
             break
 
@@ -186,16 +222,16 @@ def get_timetable(login, password) -> str:
         return data
 
     # link to user's profile, requests.session()
-    user_url, s = data
-    r = s.get(user_url+'/dnevnik/quarter/'+C_NUM)
-    soup = BeautifulSoup(r.text, 'html.parser')
+    user_url, br = data
+    br.open(user_url+'/dnevnik/quarter/'+C_NUM)
+    soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
 
     # sunday or saturday and link to next week => send link to next week
     if get_time().weekday() > 4 and soup.find(class_='next'):
         next_week_link = soup.find(class_='next').get('send_to')
-        r = s.get(user_url + next_week_link[next_week_link.find('/dnevnik'):])
+        br.open(user_url + next_week_link[next_week_link.find('/dnevnik'):])
         # changing info
-        soup = BeautifulSoup(r.text, 'html.parser')
+        soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
 
     rows = soup.find_all('tr')
     for row in rows:
