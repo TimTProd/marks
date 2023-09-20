@@ -207,6 +207,48 @@ def get_marks(login, password, previous_quarter=False) -> list:
 
     return messages
 
+def get_hometask(login, password):
+    result_message = 'Д/з:\n'
+    data = log_in(login, password)
+
+    # error check
+    if type(data) == str:
+        return data
+
+    user_url, br = data
+    br.open(user_url+'/dnevnik/quarter/'+C_NUM)
+    soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
+
+     # sunday or saturday and link to next week => send link to next week
+    if get_time().weekday() > 4 and soup.find(class_='next'):
+        next_week_link = soup.find(class_='next').get('send_to')
+        br.open(user_url + next_week_link[next_week_link.find('/dnevnik'):])
+        # changing info
+        soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
+
+    rows = soup.find_all('tr')
+    for row in rows:
+        # lesson
+        if row.find(class_='mark_box'):
+            lesson = normalize(row.find(class_='lesson').text)
+            hometask = row.find(class_='ht-text')
+            if hometask == None:
+                hometask = '-'
+            else:
+                hometask = normalize(hometask.text)
+            # removing numeration
+            lesson = str(lesson[lesson.find('.')+1:]).strip()
+            # if the string consists of more than just spaces
+            if lesson.replace(' ', ''):
+                # deleting duplicate lessons
+                if result_message[-len(lesson)-1:] != lesson+'\n':
+                    result_message += '*' + lesson + ':* _' + hometask + '_'+ '\n'
+        # date
+        else:
+            weekday = normalize(row.find(class_='lesson').text)
+            result_message += '*---->'+weekday+'<----*'+'\n'
+    return result_message
+
 
 def get_timetable(login, password) -> str:
     r"""Getting timetable of current week. Returns: string of message to send.

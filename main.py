@@ -12,14 +12,16 @@ import schedule
 # telegram bot
 bot = telebot.TeleBot(TOKEN, threaded=False)
 
+bot.parse_mode = "markdown"
+
 # users database
 # TODO: add SQL/dumps
 # users_dict = {***REMOVED***: ['None', 'None', 0]}
 # np.save('bd.npy', users_dict)
-users_dict = np.load('bd.npy', allow_pickle=True).item()
+users_dict = np.load('./bd/bd.npy', allow_pickle=True).item()
 users_dict = dict(users_dict)
 def update_database():
-    np.save('bd.npy', users_dict)
+    np.save('./bd/bd.npy', users_dict)
 
 
 # cooldown info
@@ -34,9 +36,9 @@ schedule.every().day.at("00:00").do(clear_cooldown)
 
 # templates
 keyboard1 = telebot.types.ReplyKeyboardMarkup(True, False)
-keyboard1.row('Информация', 'Расписание')
-keyboard1.row('Получить оценки', 'Прошлая четверть')
-keyboard1.row('Ввести данные', 'Узнать свои данные')
+keyboard1.row('Д/З', 'Получить оценки')
+keyboard1.row('Прошлая четверть', 'Расписание')
+keyboard1.row('Информация', 'Ввести данные', 'Узнать свои данные')
 
 
 ''' Bot events '''
@@ -89,7 +91,7 @@ def repeat_all_messages(message):
             for i in users_dict:
                 messages_counter += 1
                 try:
-                    bot.send_message(i, str(message.text).split('\n')[-1])
+                    bot.send_message(i, str(message.text[9:]).split('\n')[-1])
                     correct_messages_counter += 1
                 except Exception as e:
                     print(e)
@@ -121,6 +123,7 @@ def repeat_all_messages(message):
                         requests_count[int(reset_id)] = 0
                         bot.send_message(message.chat.id, f'Сброшен {reset_id}')
                         return
+            
 
     # bans
     if users_dict[message.from_user.id][2] == -1:
@@ -209,6 +212,29 @@ def repeat_all_messages(message):
                              'Неверный формат. Попробуйте ещё раз. Логин и пароль вводятся через пробел',
                              reply_markup=keyboard1)
             bot.delete_message(message.chat.id, message.message_id)
+    elif formatted_message == 'д/з':
+        if users_dict[message.from_user.id][0] != 'None':
+            if requests_count[message.from_user.id] > 20:
+                bot.send_message(message.chat.id,
+                                 'Слишком много запросов(>20) за день.')
+                return
+            bot.send_message(message.chat.id,
+                             'Получение дз. Если бот долго не отвечает, попробуйте запросить дз ещё раз')
+            try:
+                hometask = get_hometask(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1])
+                cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=10)
+                requests_count[message.from_user.id] += 1
+            except Exception as e:
+                print(e)
+                if str(e):
+                    bot.send_message(LOG_CHAT_ID, str(e))
+                bot.send_message(message.chat.id, 'Ошибка ER (прям как у стиральной машины). Проверьте введённые данные или напишите в компанию ***REMOVED***')
+                return
+            bot.send_message(message.chat.id, hometask)
+            bot.send_message(LOG_CHAT_ID, f'Получил дз {message.from_user.id}')
+        else:
+            bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
+                             reply_markup=keyboard1)
     else:
         bot.send_message(message.chat.id,
                          'Че?')
