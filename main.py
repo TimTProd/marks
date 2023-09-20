@@ -155,7 +155,7 @@ def repeat_all_messages(message):
             for mark_message in marks:
                 bot.send_message(message.chat.id, mark_message)
             bot.send_message(message.chat.id,
-                             'Оценки собраны за четверть')
+                             'Мда.. Ну у тебя и отметки')
             bot.send_message(LOG_CHAT_ID, f'Использовал {message.from_user.id}')
         else:
             bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
