@@ -242,4 +242,4 @@ def repeat_all_messages(message):
     update_database()
 
 
-bot.polling(none_stop=True, timeout=10)
+bot.polling(none_stop=True, timeout=123)
