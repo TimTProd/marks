@@ -45,7 +45,7 @@ keyboard1.row('Информация', 'Ввести данные', 'Узнать
 # any slash command triggers Keyboard
 @bot.message_handler(commands=['start', 'help', 'info'])
 def info_message(message):
-    bot.send_message(message.chat.id, 'Привет!', reply_markup=keyboard1)
+    bot.send_message(message.chat.id, 'Привет! Для использования бота нужно залогиниться. Нажми кнопку "Ввести данные"', reply_markup=keyboard1)
 
 
 # main commands
