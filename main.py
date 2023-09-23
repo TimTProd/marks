@@ -159,7 +159,7 @@ def repeat_all_messages(message):
                 bot.send_message(message.chat.id, mark_message)
             bot.send_message(message.chat.id,
                              'Мда.. Ну у тебя и отметки')
-            bot.send_message(LOG_CHAT_ID, f'Использовал {message.from_user.id}')
+            bot.send_message(LOG_CHAT_ID, f'Использовал {message.from_user.id}, {message.from_user.username}')
         else:
             bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
                              reply_markup=keyboard1)
@@ -182,7 +182,7 @@ def repeat_all_messages(message):
                 bot.send_message(message.chat.id, 'Ошибка ER (прям как у стиральной машины). Проверьте введённые данные или напишите в компанию ***REMOVED***')
                 return
             bot.send_message(message.chat.id, timetable)
-            bot.send_message(LOG_CHAT_ID, f'Получил расписание {message.from_user.id}')
+            bot.send_message(LOG_CHAT_ID, f'Получил расписание {message.from_user.id}, {message.from_user.username}')
         else:
             bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
                              reply_markup=keyboard1)
@@ -231,7 +231,7 @@ def repeat_all_messages(message):
                 bot.send_message(message.chat.id, 'Ошибка ER (прям как у стиральной машины). Проверьте введённые данные или напишите в компанию ***REMOVED***')
                 return
             bot.send_message(message.chat.id, hometask)
-            bot.send_message(LOG_CHAT_ID, f'Получил дз {message.from_user.id}')
+            bot.send_message(LOG_CHAT_ID, f'Получил дз {message.from_user.id}, {message.from_user.username}')
         else:
             bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
                              reply_markup=keyboard1)
@@ -242,4 +242,4 @@ def repeat_all_messages(message):
     update_database()
 
 
-bot.polling(none_stop=True, timeout=123)
+bot.infinity_polling(timeout=10, long_polling_timeout = 5)
