@@ -153,7 +153,7 @@ def repeat_all_messages(message):
                 print(e)
                 if str(e):
                     bot.send_message(LOG_CHAT_ID, str(e))
-                bot.send_message(message.chat.id, 'Ошибка №69. Проверьте введённые данные или напишите в компанию ***REMOVED***')
+                bot.send_message(message.chat.id, 'Ошибка №69. Проверьте введённые данные или напишите в компанию TimTProd.')
                 return
             for mark_message in marks:
                 bot.send_message(message.chat.id, mark_message)
@@ -179,7 +179,7 @@ def repeat_all_messages(message):
                 print(e)
                 if str(e):
                     bot.send_message(LOG_CHAT_ID, str(e))
-                bot.send_message(message.chat.id, 'Ошибка ER (прям как у стиральной машины). Проверьте введённые данные или напишите в компанию ***REMOVED***')
+                bot.send_message(message.chat.id, 'Ошибка ER (прям как у стиральной машины). Проверьте введённые данные или напишите в компанию TimTProd.')
                 return
             bot.send_message(message.chat.id, timetable)
             bot.send_message(LOG_CHAT_ID, f'Получил расписание {message.from_user.id}, {message.from_user.username}')
@@ -228,7 +228,7 @@ def repeat_all_messages(message):
                 print(e)
                 if str(e):
                     bot.send_message(LOG_CHAT_ID, str(e))
-                bot.send_message(message.chat.id, 'Ошибка ER (прям как у стиральной машины). Проверьте введённые данные или напишите в компанию ***REMOVED***')
+                bot.send_message(message.chat.id, 'Ошибка ER (прям как у стиральной машины). Проверьте введённые данные или напишите в компанию TimTProd.')
                 return
             bot.send_message(message.chat.id, hometask)
             bot.send_message(LOG_CHAT_ID, f'Получил дз {message.from_user.id}, {message.from_user.username}')

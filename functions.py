@@ -94,7 +94,7 @@ def log_in(login, password):
         br.submit()
         user_url = br.geturl()
     except:
-        return 'Ошибка соединения/получения данных, попробуйте ещё раз, или напишите в компанию ***REMOVED***'
+        return 'Ошибка соединения/получения данных, попробуйте ещё раз, или напишите в компанию TimTProd.'
     if user_url == 'https://schools.by/login':
         return 'Неверные данные авторизации ' 
     sleep(.5)
@@ -121,7 +121,7 @@ def get_marks(login, password, previous_quarter=False) -> list:
     try:
         br.open(user_url + '/dnevnik/quarter/' + c_num + '/week/' + start_from)
     except:
-        return ['Ошибка соединения E4, попробуйте ещё раз или пишите в компанию ***REMOVED***']
+        return ['Ошибка соединения E4, попробуйте ещё раз или пишите в компанию TimTProd.']
 
     # {'lesson': [9,9,10]}
     marks = {}
@@ -173,7 +173,7 @@ def get_marks(login, password, previous_quarter=False) -> list:
                 next_week = next_week[next_week.find('dnevnik')-1:]
                 br.open(user_url + next_week)
             except:
-                return ['Ошибка соединения E5, попробуйте ещё раз или пишите в компанию ***REMOVED***']
+                return ['Ошибка соединения E5, попробуйте ещё раз или пишите в компанию TimTProd.']
         else:
             break
 
