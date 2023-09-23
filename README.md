@@ -27,3 +27,12 @@ Marks - это бот для получения оценок с [schools](https:
  3. Создаём файл `config.py`
  4. Настраиваем запуск бота через systemctl([гайд](https://help.sprintbox.ru/perl-python-nodejs/python-telegram-bots#bot-launch)) или используем `start.py`
  `python3 start.py`
+
+Содержание config.py
+----------------------
+TOKEN = "Токен бота"
+LOG_CHAT_ID = "ID канала с ботом, для логов"
+C_NUM = "Номер текущей четверти (найти на сайте)"
+PREV_C_NUM = "Номер прошлой четверти"
+START_FROM = "Дата начала четверти (Например: "2023-08-28")"
+PREV_START_FROM = "Аналогично с START_FROM, но для прошлой четверти"

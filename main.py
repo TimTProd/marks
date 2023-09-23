@@ -16,7 +16,7 @@ bot.parse_mode = "markdown"
 
 # users database
 # TODO: add SQL/dumps
-# users_dict = {***REMOVED***: ['None', 'None', 0]}
+# users_dict = {ADMIN ID: ['None', 'None', 0]}
 # np.save('bd.npy', users_dict)
 users_dict = np.load('./bd/bd.npy', allow_pickle=True).item()
 users_dict = dict(users_dict)
@@ -80,7 +80,7 @@ def repeat_all_messages(message):
         requests_count[message.from_user.id] = 0
 
     # dev commands
-    if message.from_user.id == ***REMOVED***:
+    if message.from_user.id == <Admin ID>:
         if formatted_message == 'пользователи':
             bot.send_message(message.chat.id, f'Использует {len(users_dict) - 1}')
             return
