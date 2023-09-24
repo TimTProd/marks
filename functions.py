@@ -246,7 +246,7 @@ def get_hometask(login, password):
         # date
         else:
             weekday = normalize(row.find(class_='lesson').text)
-            result_message += '*---->'+weekday+'<----*'+'\n'+'\n'
+            result_message += '\n' + '*---->'+weekday+'<----*' + '\n'
     return result_message
 
 
