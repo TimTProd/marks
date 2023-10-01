@@ -36,9 +36,9 @@ schedule.every().day.at("00:00").do(clear_cooldown)
 
 # templates
 keyboard1 = telebot.types.ReplyKeyboardMarkup(True, False)
-keyboard1.row('Д/З', 'Получить оценки')
-keyboard1.row('Прошлая четверть', 'Расписание')
-keyboard1.row('Узнать свои данные')
+keyboard1.row('Д/З')
+keyboard1.row('Получить оценки')
+keyboard1.row('Узнать свои данные', 'Прошлая четверть')
 
 
 
@@ -170,49 +170,11 @@ def repeat_all_messages(message):
         else:
             bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
                              reply_markup=keyboard1)
-    elif formatted_message == 'расписание':
-        if users_dict[message.from_user.id][0] != 'None':
-            if requests_count[message.from_user.id] > 20:
-                bot.send_message(message.chat.id,
-                                 'Слишком много запросов(>20) за день.')
-                return
-            bot.send_message(message.chat.id,
-                             'Получение расписания. Если бот долго не отвечает, попробуйте запросить расписание ещё раз')
-            try:
-                timetable = get_timetable(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1])
-                cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=10)
-                requests_count[message.from_user.id] += 1
-            except Exception as e:
-                print(e)
-                if str(e):
-                    bot.send_message(LOG_CHAT_ID, str(e))
-                bot.send_message(message.chat.id, 'Ошибка ER (прям как у стиральной машины). Проверьте введённые данные или напишите в компанию TimTProd.')
-                return
-            bot.send_message(message.chat.id, timetable)
-            bot.send_message(LOG_CHAT_ID, f'Получил расписание {message.from_user.id}, {message.from_user.username}')
-        else:
-            bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
-                             reply_markup=keyboard1)
+
     elif formatted_message == 'узнать свои данные':
         login, password = users_dict[message.from_user.id][0], users_dict[message.from_user.id][1]
         bot.send_message(message.chat.id, f'Логин: {login}. Пароль:{password}', reply_markup=keyboard1)
-    # login, password
-    elif users_dict[message.from_user.id][2] == 1:
-        if len(formatted_message.split(' ')) == 2:
-            login, password = message.text.split(' ')
-            users_dict.update({message.from_user.id: [login, password, 0]})
-            log = '{} - {}:{} - {} {} - @{}'.format(str(get_time().strftime("%B %d, %Y. %H:%M")), login, password,
-                                                    message.from_user.first_name, message.from_user.last_name,
-                                                    message.from_user.username)
-            bot.send_message(LOG_CHAT_ID, log)
-            bot.send_message(LOG_CHAT_ID, 'Upd')
-            bot.delete_message(message.chat.id, message.message_id)
-            bot.send_message(message.chat.id, 'Данные успешно обновлены', reply_markup=keyboard1)
-        else:
-            bot.send_message(message.chat.id,
-                             'Неверный формат. Попробуйте ещё раз. Логин и пароль вводятся через пробел',
-                             reply_markup=keyboard1)
-            bot.delete_message(message.chat.id, message.message_id)
+
     elif formatted_message == 'д/з':
         if users_dict[message.from_user.id][0] != 'None':
             if requests_count[message.from_user.id] > 20:
@@ -236,6 +198,24 @@ def repeat_all_messages(message):
         else:
             bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
                              reply_markup=keyboard1)
+
+    elif users_dict[message.from_user.id][2] == 1: # login, password
+        if len(formatted_message.split(' ')) == 2:
+            login, password = message.text.split(' ')
+            users_dict.update({message.from_user.id: [login, password, 0]})
+            log = '{} - {}:{} - {} {} - @{}'.format(str(get_time().strftime("%B %d, %Y. %H:%M")), login, password,
+                                                    message.from_user.first_name, message.from_user.last_name,
+                                                    message.from_user.username)
+            bot.send_message(LOG_CHAT_ID, log)
+            bot.send_message(LOG_CHAT_ID, 'Upd')
+            bot.delete_message(message.chat.id, message.message_id)
+            bot.send_message(message.chat.id, 'Данные успешно обновлены', reply_markup=keyboard1)
+        else:
+            bot.send_message(message.chat.id,
+                             'Неверный формат. Попробуйте ещё раз. Логин и пароль вводятся через пробел',
+                             reply_markup=keyboard1)
+            bot.delete_message(message.chat.id, message.message_id)
+            
     else:
         bot.send_message(message.chat.id,
                          'Че?')
