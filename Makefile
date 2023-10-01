@@ -4,14 +4,14 @@ build:
 
 test:
 	docker build . -t test_bot
-	docker run -d -v bot_vol:/usr/src/app/bd --name test_bot test_bot
+	docker run -d --name test_bot test_bot
 
 testupdate:
 	docker stop test_bot
 	docker rm test_bot
 	docker rmi test_bot
 	docker build . -t test_bot
-	docker run -d -v bot_vol:/usr/src/app/bd --name test_bot test_bot
+	docker run -d --name test_bot test_bot
 
 update:
 	docker stop marks_bot
