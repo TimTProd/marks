@@ -19,3 +19,8 @@ update:
 	docker rmi marks_bot
 	docker build . -t marks_bot
 	docker run -d -v bot_vol:/usr/src/app/bd --name marks_bot marks_bot
+
+teststop:
+	docker stop test_bot
+	docker rm test_bot
+	docker rmi test_bot
