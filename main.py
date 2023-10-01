@@ -96,7 +96,11 @@ def repeat_all_messages(message):
     # dev commands
     if message.from_user.id == OWNER_ID:
         if formatted_message == 'пользователи':
-            bot.send_message(message.chat.id, f'Использует {len(users_dict) - 1}')
+            c = 0
+            for id, data in users_dict.items():
+                if data[2] == 0:
+                    c += 1
+            bot.send_message(message.chat.id, f'Использует {len(users_dict) - 1}: залогиненых {c - 1}')
             return
         elif formatted_message[:8] == 'рассылка':
             bot.send_message(message.chat.id, 'Делаю рассылку')
