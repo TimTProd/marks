@@ -190,7 +190,7 @@ def get_marks(login, password, previous_quarter=False) -> list:
         s += '\n'
     s += 'Нету оценок по: '
     for lesson in lessons:
-        if (lesson not in marks) and lesson:
+        if (lesson not in marks) and lesson and lesson != "чзс":
             s += lesson.lower()
             s += ', '
     s = s[:-2]
@@ -246,7 +246,9 @@ def get_hometask(login, password):
         # date
         else:
             weekday = normalize(row.find(class_='lesson').text)
-            result_message += '\n' + '*---->'+weekday+'<----*' + '\n'
+            weekdayName = ''.join([i for i in weekday if not i.isdigit()]).replace(',','')
+            if weekdayName != "Суббота ":
+                result_message += '\n' + '*---->'+weekday+'<----*' + '\n'
     return result_message
 
 
