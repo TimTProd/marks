@@ -38,14 +38,28 @@ schedule.every().day.at("00:00").do(clear_cooldown)
 keyboard1 = telebot.types.ReplyKeyboardMarkup(True, False)
 keyboard1.row('Д/З', 'Получить оценки')
 keyboard1.row('Прошлая четверть', 'Расписание')
-keyboard1.row('Информация', 'Ввести данные', 'Узнать свои данные')
+keyboard1.row('Узнать свои данные')
+
 
 
 ''' Bot events '''
 # any slash command triggers Keyboard
-@bot.message_handler(commands=['start', 'help', 'info'])
+@bot.message_handler(commands=['start'])
 def info_message(message):
-    bot.send_message(message.chat.id, 'Привет! Для использования бота нужно залогиниться. Нажми кнопку "Ввести данные"', reply_markup=keyboard1)
+    bot.send_message(message.chat.id, 'Привет! Я бот для получения и анализа оценок со schools.by. Я НЕ могу отправить текст песни моргенштерна "Я когда ни-будь уйду", но если очень захочу, то смогу. Если ты тут первый раз, то надо залогиниться (если само не начало – /login).', reply_markup=keyboard1)
+    if message.from_user.id not in users_dict:
+        users_dict.update({message.from_user.id: ['None', 'None', 0]})
+        s1 = 'Введите логин и пароль через пробел(в логине и пароле нельзя использовать пробел)'
+        bot.send_message(message.chat.id, s1, reply_markup=keyboard1)
+        users_dict[message.from_user.id][2] = 1
+@bot.message_handler(commands=['login'])
+def login_message(message):
+    if message.from_user.id not in users_dict:
+        users_dict.update({message.from_user.id: ['None', 'None', 0]})
+    s1 = 'Введите логин и пароль через пробел(в логине и пароле нельзя использовать пробел)'
+    bot.send_message(message.chat.id, s1, reply_markup=keyboard1)
+    users_dict[message.from_user.id][2] = 1
+
 
 
 # main commands
@@ -80,7 +94,7 @@ def repeat_all_messages(message):
         requests_count[message.from_user.id] = 0
 
     # dev commands
-    if message.from_user.id == <Admin ID>:
+    if message.from_user.id == OWNER_ID:
         if formatted_message == 'пользователи':
             bot.send_message(message.chat.id, f'Использует {len(users_dict) - 1}')
             return
@@ -131,12 +145,7 @@ def repeat_all_messages(message):
         return
 
     # default commands
-    if formatted_message == 'информация':
-        s1 = 'Привет! Я бот для получения и анализа оценок со schools.by. Я НЕ могу отправить текст песни моргенштерна "Я когда ни-будь уйду", но если очень захочу то смогу'
-        s2 = 'да нормально'
-        bot.send_message(message.chat.id, s1)
-        bot.send_message(message.chat.id, s2, reply_markup=keyboard1)
-    elif formatted_message == 'получить оценки' or formatted_message == 'прошлая четверть':
+    if formatted_message == 'получить оценки' or formatted_message == 'прошлая четверть':
         if users_dict[message.from_user.id][0] != 'None':
             if requests_count[message.from_user.id] > 20:
                 bot.send_message(message.chat.id,
@@ -184,12 +193,6 @@ def repeat_all_messages(message):
         else:
             bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
                              reply_markup=keyboard1)
-    elif formatted_message == 'ввести данные':
-        s1 = 'Введите логин и пароль через пробел(в логине и пароле нельзя использовать пробел)'
-        bot.send_message(message.chat.id, s1, reply_markup=keyboard1)
-        # next message will be login:password
-        # noinspection PyTypeChecker
-        users_dict[message.from_user.id][2] = 1
     elif formatted_message == 'узнать свои данные':
         login, password = users_dict[message.from_user.id][0], users_dict[message.from_user.id][1]
         bot.send_message(message.chat.id, f'Логин: {login}. Пароль:{password}', reply_markup=keyboard1)
