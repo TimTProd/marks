@@ -60,6 +60,19 @@ def login_message(message):
     bot.send_message(message.chat.id, s1, reply_markup=keyboard1)
     users_dict[message.from_user.id][2] = 1
 
+@bot.message_handler(commands=["getuser"])
+def answer(message):
+    if (message.from_user.id == OWNER_ID):
+        bot.send_message(OWNER_ID, "amogus")
+        userid = int(message.text.split(maxsplit=1)[1])
+        UsrInfo = bot.get_chat_member(userid, userid).user
+        bot.send_message(OWNER_ID, "Id: " + str(UsrInfo.id) + "\nFirst Name: " + str(UsrInfo.first_name) + "\nLast Name: " + str(UsrInfo.last_name) +
+                            "\nUsername: @" + str(UsrInfo.username))
+@bot.message_handler(commands=["getdict"])
+def answer(message):
+    if (message.from_user.id == OWNER_ID):
+        bot.send_message(OWNER_ID, str(users_dict))
+
 
 
 # main commands
@@ -141,6 +154,7 @@ def repeat_all_messages(message):
                         requests_count[int(reset_id)] = 0
                         bot.send_message(message.chat.id, f'Сброшен {reset_id}')
                         return
+        
             
 
     # bans
