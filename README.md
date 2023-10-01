@@ -31,15 +31,20 @@ Marks - это бот для получения оценок с [schools](https:
 Содержание config.py
 ----------------------
 TOKEN = "Токен бота"\
-LOG_CHAT_ID = "ID канала с ботом, для логов"\
+LOG_CHAT_ID = <ID группы с ботом, для логов>\
 C_NUM = "Номер текущей четверти (найти на сайте)"\
 PREV_C_NUM = "Номер прошлой четверти"\
 START_FROM = "Дата начала четверти (Например: "2023-08-28")"\
-PREV_START_FROM = "Аналогично с START_FROM, но для прошлой четверти"
+PREV_START_FROM = "Аналогично с START_FROM, но для прошлой четверти"\
+OWNER_ID = <ID владельца>
 
 Как запустить с Docker
 ----------------------
+`make build`
+
+ЛИБО:
 1. Билдим
 `docker build . -t marks_bot`
 2. Запускаем в фоновом режиме (bot_vol – для сохранения базы паролей)
 `docker run -d -v bot_vol:/usr/src/app/bd --name marks_bot marks_bot`
+
