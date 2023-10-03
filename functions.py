@@ -36,7 +36,7 @@ def log_in(login, password):
                         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/605.1.15 (KHTML, like Gecko) '
                         'Version/11.1.2 Safari/605.1.15')]
     br.set_handle_robots(False)
-    br.set_proxies({"http": "194.158.203.14:80"})
+    # br.set_proxies({"http": "194.158.203.14:80"})
     # response
     # r = None
 
