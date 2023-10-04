@@ -169,8 +169,8 @@ def repeat_all_messages(message):
                 bot.send_message(message.chat.id,
                                  'Слишком много запросов(>20) за день', reply_markup=keyboard1)
                 return
-            bot.send_message(message.chat.id,
-                             'Получение данных. Ожидайте до 20 секунд... Если бот долго не отвечает, попробуйте запросить оценки ещё раз', reply_markup=keyboard1)
+            message_id = bot.send_message(message.chat.id,
+                             'Получение данных. Ожидайте до 20 секунд... Если бот долго не отвечает, попробуйте запросить оценки ещё раз', reply_markup=keyboard1).message_id
             try:
                 marks = get_marks(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1],
                                   formatted_message == 'прошлая четверть')
@@ -184,6 +184,7 @@ def repeat_all_messages(message):
                 return
             for mark_message in marks:
                 bot.send_message(message.chat.id, mark_message)
+            bot.delete_message(message.chat.id, message_id)
             bot.send_message(LOG_CHAT_ID, f'Использовал {message.from_user.id}, {message.from_user.username}')
         else:
             bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
@@ -199,8 +200,8 @@ def repeat_all_messages(message):
                 bot.send_message(message.chat.id,
                                  'Слишком много запросов(>20) за день.')
                 return
-            bot.send_message(message.chat.id,
-                             'Получение дз. Если бот долго не отвечает, попробуйте запросить дз ещё раз', reply_markup=keyboard1)
+            message_id = bot.send_message(message.chat.id,
+                             'Получение дз. Если бот долго не отвечает, попробуйте запросить дз ещё раз', reply_markup=keyboard1).message_id
             try:
                 hometask = get_hometask(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1])
                 cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=10)
@@ -212,6 +213,7 @@ def repeat_all_messages(message):
                 bot.send_message(message.chat.id, 'Ошибка ER (прям как у стиральной машины). Проверьте введённые данные или напишите в компанию TimTProd.')
                 return
             bot.send_message(message.chat.id, hometask)
+            bot.delete_message(message.chat.id, message_id)
             bot.send_message(LOG_CHAT_ID, f'Получил дз {message.from_user.id}, {message.from_user.username}')
         else:
             bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
