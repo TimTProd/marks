@@ -190,7 +190,7 @@ def get_marks(login, password, previous_quarter=False) -> list:
         s += '\n'
     s += 'Нету оценок по: '
     for lesson in lessons:
-        if (lesson not in marks) and lesson and lesson != "чзс":
+        if (lesson not in marks) and lesson and lesson != "ЧЗС":
             s += lesson.lower()
             s += ', '
     s = s[:-2]
