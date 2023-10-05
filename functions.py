@@ -201,6 +201,8 @@ def get_marks(login, password, previous_quarter=False) -> list:
     messages.append(s)
 
     s = 'Средний балл:\n'
+    c = 0
+    mark_sum = 0
     for lesson in sorted(marks.keys()):
         if lesson[-1] == '.':
             lesson_b = lesson[:-1]
@@ -209,9 +211,16 @@ def get_marks(login, password, previous_quarter=False) -> list:
         s += '*' + lesson_b + ':* '
         mean = sum(marks[lesson]) / max(len(marks[lesson]), 1)
         s += str(mean)[:5]
-        s += ' ('+str(my_round(mean))+')'
+        round = my_round(mean)
+        s += ' ('+str(round)+')'
         s += '\n'
+        c += 1
+        mark_sum += round
+    s += 'Общий средний балл: '
+    av = mark_sum / c
+    s += '*' + str(av) + ' ('+str(my_round(av))+')' + '*'
     messages.append(s)
+    
 
     return messages
 
