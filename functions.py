@@ -211,14 +211,14 @@ def get_marks(login, password, previous_quarter=False) -> list:
         s += '*' + lesson_b + ':* '
         mean = sum(marks[lesson]) / max(len(marks[lesson]), 1)
         s += str(mean)[:5]
-        round = my_round(mean)
-        s += ' ('+str(round)+')'
+        rounded = my_round(mean)
+        s += ' ('+str(rounded)+')'
         s += '\n'
         c += 1
-        mark_sum += round
+        mark_sum += rounded
     s += 'Общий средний балл: '
     av = mark_sum / c
-    s += '*' + str(av) + ' ('+str(my_round(av))+')' + '*'
+    s += '*' + str(round(av, 3)) + ' ('+str(my_round(av))+')' + '*'
     messages.append(s)
     
 
