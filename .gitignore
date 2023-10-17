@@ -1,5 +1,6 @@
 .DS_Store
 bd.npy
+marks.npy
 config.py
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template

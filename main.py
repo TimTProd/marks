@@ -12,7 +12,7 @@ import schedule
 # telegram bot
 bot = telebot.TeleBot(TOKEN, threaded=False)
 
-bot.parse_mode = "markdown"
+bot.parse_mode = "HTML"
 
 # users database
 # TODO: add SQL/dumps
@@ -22,6 +22,11 @@ users_dict = np.load('./bd/bd.npy', allow_pickle=True).item()
 users_dict = dict(users_dict)
 def update_database():
     np.save('./bd/bd.npy', users_dict)
+
+pastMarks_dict = np.load('./bd/marks.npy', allow_pickle=True).item()
+pastMarks_dict = dict(pastMarks_dict)
+def update_marks_database():
+    np.save('./bd/marks.npy', pastMarks_dict)
 
 
 # cooldown info
@@ -84,6 +89,10 @@ def repeat_all_messages(message):
     # adding new users
     if message.from_user.id not in users_dict:
         users_dict.update({message.from_user.id: ['None', 'None', 0]})
+    
+    # adding past marks for a new user
+    if message.from_user.id not in pastMarks_dict:
+        pastMarks_dict.update({message.from_user.id: {}})
 
     # chat checking
     if message.from_user.id != message.chat.id:
@@ -172,8 +181,11 @@ def repeat_all_messages(message):
             message_id = bot.send_message(message.chat.id,
                              'Получение данных. Ожидайте до 20 секунд... Если бот долго не отвечает, попробуйте запросить оценки ещё раз', reply_markup=keyboard1).message_id
             try:
-                marks = get_marks(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1],
+                marks_out = get_marks(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1], pastMarks_dict[message.from_user.id],
                                   formatted_message == 'прошлая четверть')
+                marks = marks_out[:2]
+                past_marks = marks_out[2]
+                pastMarks_dict.update({message.from_user.id: past_marks})
                 cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=30)
                 requests_count[message.from_user.id] += 1
             except Exception as e:
@@ -238,9 +250,11 @@ def repeat_all_messages(message):
             
     else:
         bot.send_message(message.chat.id,
-                         'Че?', reply_markup=keyboard1)
+                         'Понял.', reply_markup=keyboard1)
+        bot.send_message(LOG_CHAT_ID, f'Приколюха от {message.from_user.id}, {message.from_user.username}: "{message.text}"')
 
     update_database()
+    update_marks_database()
 
 
 bot.infinity_polling(timeout=10, long_polling_timeout = 5)

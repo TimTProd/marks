@@ -100,11 +100,12 @@ def log_in(login, password):
     sleep(.5)
     return user_url, br
 
-def get_marks(login, password, previous_quarter=False) -> list:
+def get_marks(login, password, past_marks, previous_quarter=False) -> list:
     r"""Getting marks. Returns: list of strings with messages to send.
 
     :param login: String with login.
     :param password: String with password.
+    :param past_marks: Dict with past marks
     :param previous_quarter: Bool. True if you need to get info about previous quarter.
     """
     c_num = PREV_C_NUM if previous_quarter else C_NUM
@@ -183,13 +184,36 @@ def get_marks(login, password, previous_quarter=False) -> list:
 
     s = ''
     for lesson in sorted(marks.keys()):
-        if lesson[-1] == '.':
+        if lesson[-1] == '.':       # deleting dot in the end of a lesson
             lesson_b = lesson[:-1]
         else:
             lesson_b = lesson 
-        s += '*' + lesson_b + ':* '
-        for mark in marks[lesson]:
-            s += str(mark)+', '
+        s += '<b>' + lesson_b + ':</b> '
+
+        # adding marks and making new marks bold
+        bypass = False
+        try:
+            if (lesson not in past_marks):
+                a = False
+                bypass = True
+                new_idx = 0
+            else:
+                a = (len(marks[lesson]) == past_marks[lesson]) 
+        except:
+            a = True
+        for idx, mark in enumerate(marks[lesson]):
+            if a:
+                s += str(mark)+', '
+            else:
+                if not bypass:
+                    amount = len(marks[lesson])
+                    difference = amount - past_marks[lesson]
+                    new_idx = len(marks[lesson]) - difference
+                if idx < new_idx:
+                    s += str(mark)+', '
+                else:
+                    s += '<u>' + str(mark) + '</u>, '
+
         s = s[:-2]
         s += '\n'
     s += 'Нету оценок по: '
@@ -208,7 +232,7 @@ def get_marks(login, password, previous_quarter=False) -> list:
             lesson_b = lesson[:-1]
         else:
             lesson_b = lesson 
-        s += '*' + lesson_b + ':* '
+        s += '<b>' + lesson_b + ':</b> '
         mean = sum(marks[lesson]) / max(len(marks[lesson]), 1)
         s += str(mean)[:5]
         rounded = my_round(mean)
@@ -218,9 +242,17 @@ def get_marks(login, password, previous_quarter=False) -> list:
         mark_sum += rounded
     s += 'Общий средний балл: '
     av = mark_sum / c
-    s += '*' + str(round(av, 3)) + ' ('+str(my_round(av))+')' + '*'
+    s += '<b>' + str(round(av, 3)) + ' ('+str(my_round(av))+')' + '</b>'
     messages.append(s)
-    
+
+    # saving past marks
+    s = {}
+    for lesson in sorted(marks.keys()):
+        s[lesson] = len(marks[lesson])
+    for lesson in lessons:
+        if (lesson not in marks) and lesson and lesson != "ЧЗС":
+            s[lesson] = 0
+    messages.append(s)
 
     return messages
 
@@ -259,15 +291,14 @@ def get_hometask(login, password):
             if lesson.replace(' ', ''):
                 # deleting duplicate lessons
                 if result_message[-len(lesson)-1:] != lesson+'\n':
-                    result_message += '*' + lesson + ':* _' + hometask + '_'+ '\n'
+                    result_message += '<b>' + lesson + ':</b> <i>' + hometask + '</i>'+ '\n'
         # date
         else:
             weekday = normalize(row.find(class_='lesson').text)
             weekdayName = ''.join([i for i in weekday if not i.isdigit()]).replace(',','')
             if weekdayName != "Суббота ":
-                result_message += '\n' + '*---->'+weekday+'<----*' + '\n'
+                result_message += '\n' + '<b>---&gt'+weekday+'&lt---</b>' + '\n'
     return result_message
-
 
 def get_timetable(login, password) -> str:
     r"""Getting timetable of current week. Returns: string of message to send.
@@ -311,4 +342,3 @@ def get_timetable(login, password) -> str:
             weekday = normalize(row.find(class_='lesson').text)
             result_message += '-->'+weekday+'<--'+'\n'
     return result_message
-
