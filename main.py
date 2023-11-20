@@ -182,7 +182,7 @@ def repeat_all_messages(message):
                              'Получение данных. Ожидайте до 20 секунд... Если бот долго не отвечает, попробуйте запросить оценки ещё раз', reply_markup=keyboard1).message_id
             try:
                 marks_out = get_marks(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1], pastMarks_dict[message.from_user.id],
-                                  formatted_message == 'прошлая четверть')
+                                  PREVIOUS_QUARTER)
                 marks = marks_out[:2]
                 past_marks = marks_out[2]
                 pastMarks_dict.update({message.from_user.id: past_marks})

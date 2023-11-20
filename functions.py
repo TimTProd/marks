@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from config import *
 from mechanize import Browser
+from collections import Counter
 
 
 
@@ -108,8 +109,9 @@ def get_marks(login, password, past_marks, previous_quarter=False) -> list:
     :param past_marks: Dict with past marks
     :param previous_quarter: Bool. True if you need to get info about previous quarter.
     """
-    c_num = PREV_C_NUM if previous_quarter else C_NUM
-    start_from = PREV_START_FROM if previous_quarter else START_FROM
+    parse_previous = PREVIOUS_QUARTER
+    c_num = C_NUM
+    start_from = START_FROM
     data = log_in(login, password)
 
     # error check
@@ -118,6 +120,12 @@ def get_marks(login, password, past_marks, previous_quarter=False) -> list:
     # link to user's profile, requests.session()
     user_url, br = data
     # r = None
+
+
+    if parse_previous:
+        single_lessons = get_single_lessons(data)
+        past_quarter_marks = get_marks_dict(data, True)
+        single_lessons_pastmarks = {k: v for k, v in past_quarter_marks.items() if k in single_lessons} # dict with only marks for single lessons
 
     try:
         br.open(user_url + '/dnevnik/quarter/' + c_num + '/week/' + start_from)
@@ -129,6 +137,8 @@ def get_marks(login, password, past_marks, previous_quarter=False) -> list:
     lessons = set()
 
     sleep(1)
+
+
 
     while True:
         soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
@@ -180,6 +190,12 @@ def get_marks(login, password, past_marks, previous_quarter=False) -> list:
 
     print(marks)
     print(lessons)
+
+    if parse_previous:
+        for key, value in marks.items():
+            single_lessons_pastmarks.setdefault(key, []).extend(value)
+        marks = single_lessons_pastmarks
+    
     messages = []
 
     s = ''
@@ -241,7 +257,10 @@ def get_marks(login, password, past_marks, previous_quarter=False) -> list:
         c += 1
         mark_sum += rounded
     s += 'Общий средний балл: '
-    av = mark_sum / c
+    if c != 0:
+        av = mark_sum / c
+    else:
+        av = 69
     s += '<b>' + str(round(av, 3)) + ' ('+str(my_round(av))+')' + '</b>'
     messages.append(s)
 
@@ -342,3 +361,123 @@ def get_timetable(login, password) -> str:
             weekday = normalize(row.find(class_='lesson').text)
             result_message += '-->'+weekday+'<--'+'\n'
     return result_message
+
+
+def get_single_lessons(login_data):
+    result_message = ''
+    data = login_data
+
+    # error check
+    if type(data) == str:
+        return data
+
+    # link to user's profile, requests.session()
+    user_url, br = data
+    br.open(user_url+'/dnevnik/quarter/'+C_NUM)
+    soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
+
+    # sunday or saturday and link to next week => send link to next week
+    if get_time().weekday() > 4 and soup.find(class_='next'):
+        next_week_link = soup.find(class_='next').get('send_to')
+        br.open(user_url + next_week_link[next_week_link.find('/dnevnik'):])
+        # changing info
+        soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
+
+    rows = soup.find_all('tr')
+    for row in rows:
+        # lesson
+        if row.find(class_='mark_box'):
+            lesson = normalize(row.find(class_='lesson').text)
+            # removing numeration
+            lesson = str(lesson[lesson.find('.')+1:]).strip()
+            # if the string consists of more than just spaces
+            if lesson.replace(' ', ''):
+                # deleting duplicate lessons
+                if result_message[-len(lesson)-1:] != lesson+'\n':
+                    result_message += lesson+'\n'
+    
+    res_list = result_message.split("\n")
+    res_dict = dict(Counter(res_list))
+
+    out = []
+    for key, value in res_dict.items():
+        if value == 1:
+            out.append(key)
+
+    return out
+
+def get_marks_dict(login_data, previous_quarter=False):
+    c_num = PREV_C_NUM if previous_quarter else C_NUM
+    start_from = PREV_START_FROM if previous_quarter else START_FROM
+    data = login_data
+
+    # error check
+    if type(data) == str:
+        return [data]
+    # link to user's profile, requests.session()
+    user_url, br = data
+    # r = None
+
+    try:
+        br.open(user_url + '/dnevnik/quarter/' + c_num + '/week/' + start_from)
+    except:
+        return ['Ошибка соединения E4, попробуйте ещё раз или пишите в компанию TimTProd.']
+
+    # {'lesson': [9,9,10]}
+    marks = {}
+    lessons = set()
+
+    sleep(1)
+
+    while True:
+        print(br.response())
+        soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
+        rows = soup.find_all('tr')
+        for row in rows:
+            # checking if it's lesson
+            if row.find(class_='mark_box'):
+                # checking for a mark
+                if row.find(class_='mark_box').find('strong'):
+                    mark = normalize(row.find(class_='mark_box').find('strong').text)
+                    normalize_mark = ''
+                    for letter in mark:
+                        if letter.isdigit() or letter == '/':
+                            normalize_mark += letter
+                    mark = str(normalize_mark)
+                    if mark:
+                        # double mark
+                        if '/' in mark:
+                            mark = mark.split('/')
+                        else:
+                            mark = [mark]
+                        lesson = row.find(class_='lesson')
+                        lesson = normalize(lesson.find('span').text)
+                        # removing numeration
+                        lesson = lesson[lesson.find('.')+1:].strip()
+                        for el in mark:
+                            if str(el).isdigit():
+                                el = int(el)
+                                if lesson in marks:
+                                    marks[lesson].append(el)
+                                else:
+                                    marks[lesson] = [el]
+                else:
+                    lesson = row.find(class_='lesson')
+                    lesson = normalize(lesson.find('span').text)
+                    # removing numeration
+                    lesson = lesson[lesson.find('.') + 1:].strip()
+                    lessons.add(lesson)
+        # go to next week
+        if soup.find(class_='next'):
+            next_week = soup.find(class_='next').get('send_to')
+            try:
+                next_week = next_week[next_week.find('dnevnik')-1:]
+                br.open(user_url + next_week)
+            except:
+                return ['Ошибка соединения E5, попробуйте ещё раз или пишите в компанию TimTProd.']
+        else:
+            break
+
+    print(marks)
+
+    return marks
