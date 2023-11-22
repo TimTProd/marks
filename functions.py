@@ -37,9 +37,6 @@ def log_in(login, password):
                         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/605.1.15 (KHTML, like Gecko) '
                         'Version/11.1.2 Safari/605.1.15')]
     br.set_handle_robots(False)
-    # br.set_proxies({"http": "194.158.203.14:80"})
-    # response
-    # r = None
 
     # twice get
     try:
@@ -50,37 +47,6 @@ def log_in(login, password):
         except:
             return 'Ошибка соединения, попробуйте ещё раз. Возможно, schools.by временно не работает'
 
-    # csrf = r.cookies['csrftoken']
-
-    # request description
-    '''
-    data = {
-        'csrfmiddlewaretoken': csrf,
-        'username': login,
-        'password': password
-    }
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
-        'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Sec-Fetch-Site': 'same-origin',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-User': '?1',
-        'Sec-Fetch-Dest': 'document',
-        'Referer': 'https://schools.by/login',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Content-Length': '152',
-        'Cache-Control': 'max-age=0',
-        'Sec-Ch-Ua': '',
-        'Sec-Ch-Ua-Mobile': '?0',
-        'Sec-Ch-Ua-Platform': '""',
-        'Upgrade-Insecure-Requests': '1',
-        'Origin': 'https://schools.by',
-        'Content-Type': 'application/x-www-form-urlencoded'
-        }
-    cookies = {'csrftoken': csrf, 'slc_cookie':'7BslcMakeBetter%7D'}
-    # cookies.update({'csrftoken': csrf})
-    '''
     sleep(.5)
 
 
