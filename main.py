@@ -77,6 +77,20 @@ def answer(message):
 def answer(message):
     if (message.from_user.id == OWNER_ID):
         bot.send_message(OWNER_ID, str(users_dict))
+@bot.message_handler(commands=["getmarks"])
+def answer(message):
+    if (message.from_user.id == OWNER_ID):
+        userid = int(message.text.split(maxsplit=1)[1])
+        try:
+            marks_out = get_marks(users_dict[userid][0], users_dict[userid][1], pastMarks_dict[userid],
+                            PREVIOUS_QUARTER)
+            marks = marks_out[:2]
+        except Exception as e:
+            print(e)
+            bot.send_message(OWNER_ID, 'Чет ошибка какая-то (№69)')
+            return
+        for mark_message in marks:
+            bot.send_message(OWNER_ID, mark_message, reply_markup=keyboard1)
 
 
 
