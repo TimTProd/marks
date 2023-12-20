@@ -188,10 +188,6 @@ def repeat_all_messages(message):
     # default commands
     if formatted_message == 'получить оценки' or formatted_message == 'прошлая четверть':
         if users_dict[message.from_user.id][0] != 'None':
-            if requests_count[message.from_user.id] > 20:
-                bot.send_message(message.chat.id,
-                                 'Слишком много запросов(>20) за день')
-                return
             message_id = bot.send_message(message.chat.id,
                              'Получение данных. Ожидайте до 20 секунд... Если бот долго не отвечает, попробуйте запросить оценки ещё раз', reply_markup=keyboard1).message_id
             try:
@@ -222,10 +218,6 @@ def repeat_all_messages(message):
 
     elif formatted_message == 'д/з':
         if users_dict[message.from_user.id][0] != 'None':
-            if requests_count[message.from_user.id] > 20:
-                bot.send_message(message.chat.id,
-                                 'Слишком много запросов(>20) за день.')
-                return
             message_id = bot.send_message(message.chat.id,
                              'Получение дз. Если бот долго не отвечает, попробуйте запросить дз ещё раз').message_id
             try:
