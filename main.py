@@ -196,7 +196,7 @@ def repeat_all_messages(message):
                 marks = marks_out[:2]
                 past_marks = marks_out[2]
                 pastMarks_dict.update({message.from_user.id: past_marks})
-                cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=30)
+                cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=10)
                 requests_count[message.from_user.id] += 1
             except Exception as e:
                 print(e)
