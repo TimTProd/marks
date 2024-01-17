@@ -148,7 +148,11 @@ def get_marks(login, password, past_marks, previous_quarter=False) -> list:
             next_week = soup.find(class_='next').get('send_to')
             try:
                 next_week = next_week[next_week.find('dnevnik')-1:]
-                br.open(user_url + next_week)
+                next_date = datetime.strptime(next_week[next_week.find('week')+5:], '%Y-%m-%d')
+                if next_date > datetime.now():
+                    break
+                else:
+                    br.open(user_url + next_week)
             except:
                 return ['Ошибка соединения E5, попробуйте ещё раз или пишите в компанию TimTProd.']
         else:

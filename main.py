@@ -189,14 +189,14 @@ def repeat_all_messages(message):
     if formatted_message == 'получить оценки' or formatted_message == 'прошлая четверть':
         if users_dict[message.from_user.id][0] != 'None':
             message_id = bot.send_message(message.chat.id,
-                             'Получение данных. Ожидайте до 20 секунд... Если бот долго не отвечает, попробуйте запросить оценки ещё раз', reply_markup=keyboard1).message_id
+                             'Получение данных. Ожидайте до 10 секунд...', reply_markup=keyboard1).message_id
             try:
                 marks_out = get_marks(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1], pastMarks_dict[message.from_user.id],
                                   PREVIOUS_QUARTER)
                 marks = marks_out[:2]
                 past_marks = marks_out[2]
                 pastMarks_dict.update({message.from_user.id: past_marks})
-                cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=10)
+                # cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=10)
                 requests_count[message.from_user.id] += 1
             except Exception as e:
                 print(e)
@@ -222,7 +222,7 @@ def repeat_all_messages(message):
                              'Получение дз. Если бот долго не отвечает, попробуйте запросить дз ещё раз').message_id
             try:
                 hometask = get_hometask(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1])
-                cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=10)
+                # cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=10)
                 requests_count[message.from_user.id] += 1
             except Exception as e:
                 print(e)
