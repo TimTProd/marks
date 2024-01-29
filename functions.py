@@ -109,40 +109,43 @@ def get_marks(login, password, past_marks, previous_quarter=False) -> list:
     while True:
         soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
         rows = soup.find_all('tr')
+        c = 0 # bruh
         for row in rows:
-            # checking if it's lesson
             if row.find(class_='mark_box'):
-                # checking for a mark
-                if row.find(class_='mark_box').find('strong'):
-                    mark = normalize(row.find(class_='mark_box').find('strong').text)
-                    normalize_mark = ''
-                    for letter in mark:
-                        if letter.isdigit() or letter == '/':
-                            normalize_mark += letter
-                    mark = str(normalize_mark)
-                    if mark:
-                        # double mark
-                        if '/' in mark:
-                            mark = mark.split('/')
-                        else:
-                            mark = [mark]
+                if c > 6: # bruh
+                    # checking for a mark
+                    if row.find(class_='mark_box').find('strong'):
+                        mark = normalize(row.find(class_='mark_box').find('strong').text)
+                        normalize_mark = ''
+                        for letter in mark:
+                            if letter.isdigit() or letter == '/':
+                                normalize_mark += letter
+                        mark = str(normalize_mark)
+                        if mark:
+                            # double mark
+                            if '/' in mark:
+                                mark = mark.split('/')
+                            else:
+                                mark = [mark]
+                            lesson = row.find(class_='lesson')
+                            lesson = normalize(lesson.find('span').text)
+                            # removing numeration
+                            lesson = lesson[lesson.find('.')+1:].strip()
+                            for el in mark:
+                                if str(el).isdigit():
+                                    el = int(el)
+                                    if lesson in marks:
+                                        marks[lesson].append(el)
+                                    else:
+                                        marks[lesson] = [el]
+                    else:
                         lesson = row.find(class_='lesson')
                         lesson = normalize(lesson.find('span').text)
                         # removing numeration
-                        lesson = lesson[lesson.find('.')+1:].strip()
-                        for el in mark:
-                            if str(el).isdigit():
-                                el = int(el)
-                                if lesson in marks:
-                                    marks[lesson].append(el)
-                                else:
-                                    marks[lesson] = [el]
-                else:
-                    lesson = row.find(class_='lesson')
-                    lesson = normalize(lesson.find('span').text)
-                    # removing numeration
-                    lesson = lesson[lesson.find('.') + 1:].strip()
-                    lessons.add(lesson)
+                        lesson = lesson[lesson.find('.') + 1:].strip()
+                        lessons.add(lesson)
+            else:
+                c += 1 # bruh
         # go to next week
         if soup.find(class_='next'):
             next_week = soup.find(class_='next').get('send_to')
@@ -265,28 +268,32 @@ def get_hometask(login, password):
         soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
 
     rows = soup.find_all('tr')
+    c = 0 # bruh
     for row in rows:
         # lesson
         if row.find(class_='mark_box'):
-            lesson = normalize(row.find(class_='lesson').text)
-            hometask = row.find(class_='ht-text')
-            if hometask == None:
-                hometask = '-'
-            else:
-                hometask = normalize(hometask.text)
-            # removing numeration
-            lesson = str(lesson[lesson.find('.')+1:]).strip()
-            # if the string consists of more than just spaces
-            if lesson.replace(' ', ''):
-                # deleting duplicate lessons
-                if result_message[-len(lesson)-1:] != lesson+'\n':
-                    result_message += '<b>' + lesson + ':</b> <i>' + hometask + '</i>'+ '\n'
+            if c > 6: # bruh
+                lesson = normalize(row.find(class_='lesson').text)
+                hometask = row.find(class_='ht-text')
+                if hometask == None:
+                    hometask = '-'
+                else:
+                    hometask = normalize(hometask.text)
+                # removing numeration
+                lesson = str(lesson[lesson.find('.')+1:]).strip()
+                # if the string consists of more than just spaces
+                if lesson.replace(' ', ''):
+                    # deleting duplicate lessons
+                    if result_message[-len(lesson)-1:] != lesson+'\n':
+                        result_message += '<b>' + lesson + ':</b> <i>' + hometask + '</i>'+ '\n'
         # date
         else:
-            weekday = normalize(row.find(class_='lesson').text)
-            weekdayName = ''.join([i for i in weekday if not i.isdigit()]).replace(',','')
-            if weekdayName != "Суббота ":
-                result_message += '\n' + '<b>---&gt'+weekday+'&lt---</b>' + '\n'
+            if c > 5: # bruh
+                weekday = normalize(row.find(class_='lesson').text)
+                weekdayName = ''.join([i for i in weekday if not i.isdigit()]).replace(',','')
+                if weekdayName != "Суббота ":
+                    result_message += '\n' + '<b>---&gt'+weekday+'&lt---</b>' + '\n'
+            c += 1 # bruh
     return result_message
 
 def get_timetable(login, password) -> str:
@@ -451,3 +458,15 @@ def get_marks_dict(login_data, previous_quarter=False):
     print(marks)
 
     return marks
+
+
+"""
+29-01-2024:
+    Сегодня обнаружилось, что сайт schools.by на запрос получения данных недели дневника 
+    возвращает данные в двух экземплярах - для первого установлен признак, что его не надо
+    отображать, а оценки в нем на два балла ниже. 
+
+
+    Решил, пропуская первыую, "фальшивую" неделю. 
+    Все строчки с комментарием "# bruh" оносятся к этому решению.
+"""
