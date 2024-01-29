@@ -47,7 +47,7 @@ def log_in(login, password):
         except:
             return 'Ошибка соединения, попробуйте ещё раз. Возможно, schools.by временно не работает'
 
-    sleep(.5)
+    # sleep(.5)
 
 
     # link to user's profile
@@ -102,7 +102,7 @@ def get_marks(login, password, past_marks, previous_quarter=False) -> list:
     marks = {}
     lessons = set()
 
-    sleep(1)
+    # sleep(1)
 
 
 
