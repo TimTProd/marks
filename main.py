@@ -29,16 +29,6 @@ def update_marks_database():
     np.save('./bd/marks.npy', pastMarks_dict)
 
 
-# cooldown info
-cooldown = {}
-requests_count = {}
-def clear_cooldown():
-    global cooldown, requests_count
-    cooldown = {}
-    requests_count = {}
-schedule.every().day.at("00:00").do(clear_cooldown)
-
-
 # templates
 keyboard1 = telebot.types.ReplyKeyboardMarkup(True, False)
 keyboard1.row('Д/З')
@@ -123,15 +113,6 @@ def repeat_all_messages(message):
                 bot.send_message(LOG_CHAT_ID, str(log))
         to_send_logs = []
 
-    # cooldown and requests count
-    if message.from_user.id in cooldown:
-        if datetime.now() < cooldown[message.from_user.id] and (formatted_message == 'расписание' or formatted_message == 'получить оценки' or formatted_message == 'прошлая четверть'):
-            seconds = (cooldown[message.from_user.id] - datetime.now()).total_seconds()
-            bot.send_message(message.chat.id, f'Подождите {round(seconds)} секунд перед повторным запросом')
-            return
-    if message.from_user.id not in requests_count:
-        requests_count[message.from_user.id] = 0
-
     # dev commands
     if message.from_user.id == OWNER_ID:
         if formatted_message == 'пользователи':
@@ -189,7 +170,7 @@ def repeat_all_messages(message):
         return
 
     # default commands
-    if formatted_message == 'получить оценки' or formatted_message == 'прошлая четверть':
+    if formatted_message == 'получить оценки':
         if users_dict[message.from_user.id][0] != 'None':
             message_id = bot.send_message(message.chat.id,
                              'Получение данных. Ожидайте 10? секунд', reply_markup=keyboard1).message_id
@@ -199,8 +180,6 @@ def repeat_all_messages(message):
                 marks = marks_out[:2]
                 past_marks = marks_out[2]
                 pastMarks_dict.update({message.from_user.id: past_marks})
-                # cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=10)
-                requests_count[message.from_user.id] += 1
             except Exception as e:
                 print(e)
                 if str(e):
@@ -212,7 +191,7 @@ def repeat_all_messages(message):
             bot.delete_message(message.chat.id, message_id)
             bot.send_message(LOG_CHAT_ID, f'Использовал {message.from_user.id}, {message.from_user.username}')
         else:
-            bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
+            bot.send_message(message.chat.id, 'У нас нет логина и пароля :(',
                              reply_markup=keyboard1)
 
     elif formatted_message == 'д/з':
@@ -221,19 +200,17 @@ def repeat_all_messages(message):
                              'Получение дз. Если бот долго не отвечает, попробуйте запросить дз ещё раз').message_id
             try:
                 hometask = get_hometask(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1])
-                # cooldown[message.from_user.id] = datetime.now() + timedelta(seconds=10)
-                requests_count[message.from_user.id] += 1
             except Exception as e:
                 print(e)
                 if str(e):
                     bot.send_message(LOG_CHAT_ID, str(e))
-                bot.send_message(message.chat.id, 'Ошибка ER (прям как у стиральной машины). Проверьте введённые данные или напишите в компанию TimTProd.')
+                bot.send_message(message.chat.id, 'Чета тут ошибка какая-то((((')
                 return
             bot.send_message(message.chat.id, hometask, reply_markup=keyboard1)
             bot.delete_message(message.chat.id, message_id)
             bot.send_message(LOG_CHAT_ID, f'Получил дз {message.from_user.id}, {message.from_user.username}')
         else:
-            bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
+            bot.send_message(message.chat.id, 'У нас нет логина и пароля :(',
                              reply_markup=keyboard1)
 
     elif users_dict[message.from_user.id][2] == 1: # login, password
