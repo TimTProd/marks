@@ -131,6 +131,8 @@ def get_marks(login, password, past_marks, previous_quarter=False) -> list:
                             lesson = normalize(lesson.find('span').text)
                             # removing numeration
                             lesson = lesson[lesson.find('.')+1:].strip()
+                            if lesson == "Рус. яз.(урок без даты)":
+                                lesson = "Рус. яз."
                             for el in mark:
                                 if str(el).isdigit():
                                     el = int(el)
@@ -431,6 +433,8 @@ def get_marks_dict(login_data, previous_quarter=False):
                         lesson = normalize(lesson.find('span').text)
                         # removing numeration
                         lesson = lesson[lesson.find('.')+1:].strip()
+                        if lesson == "Рус. яз.(урок без даты)":
+                                lesson = "Рус. яз."
                         for el in mark:
                             if str(el).isdigit():
                                 el = int(el)
