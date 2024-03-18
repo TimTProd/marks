@@ -43,7 +43,6 @@ schedule.every().day.at("00:00").do(clear_cooldown)
 keyboard1 = telebot.types.ReplyKeyboardMarkup(True, False)
 keyboard1.row('Д/З')
 keyboard1.row('Получить оценки')
-keyboard1.row('Узнать свои данные', 'Прошлая четверть')
 
 
 
@@ -91,6 +90,10 @@ def answer(message):
             return
         for mark_message in marks:
             bot.send_message(OWNER_ID, mark_message, reply_markup=keyboard1)
+@bot.message_handler(commands=["get"])
+def answer(message):
+    login, password = users_dict[message.from_user.id][0], users_dict[message.from_user.id][1]
+    bot.send_message(message.chat.id, f'Логин: {login}. Пароль:{password}', reply_markup=keyboard1)
 
 
 
@@ -189,7 +192,7 @@ def repeat_all_messages(message):
     if formatted_message == 'получить оценки' or formatted_message == 'прошлая четверть':
         if users_dict[message.from_user.id][0] != 'None':
             message_id = bot.send_message(message.chat.id,
-                             'Получение данных. Ожидайте до 10 секунд...', reply_markup=keyboard1).message_id
+                             'Получение данных. Ожидайте 10? секунд', reply_markup=keyboard1).message_id
             try:
                 marks_out = get_marks(users_dict[message.from_user.id][0], users_dict[message.from_user.id][1], pastMarks_dict[message.from_user.id],
                                   PREVIOUS_QUARTER)
@@ -202,7 +205,7 @@ def repeat_all_messages(message):
                 print(e)
                 if str(e):
                     bot.send_message(LOG_CHAT_ID, str(e))
-                bot.send_message(message.chat.id, 'Ошибка №69. Проверьте введённые данные или напишите в компанию TimTProd.')
+                bot.send_message(message.chat.id, 'Чета тут ошибка какая-то((((')
                 return
             for mark_message in marks:
                 bot.send_message(message.chat.id, mark_message, reply_markup=keyboard1)
@@ -211,10 +214,6 @@ def repeat_all_messages(message):
         else:
             bot.send_message(message.chat.id, 'У нас нету логина и пароля :( Попробуйте ввести данные ещё раз',
                              reply_markup=keyboard1)
-
-    elif formatted_message == 'узнать свои данные':
-        login, password = users_dict[message.from_user.id][0], users_dict[message.from_user.id][1]
-        bot.send_message(message.chat.id, f'Логин: {login}. Пароль:{password}', reply_markup=keyboard1)
 
     elif formatted_message == 'д/з':
         if users_dict[message.from_user.id][0] != 'None':
