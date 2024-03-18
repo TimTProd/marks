@@ -153,15 +153,6 @@ def repeat_all_messages(message):
                         update_database()
                         bot.send_message(message.chat.id, f'Разбанен {ban_id}')
                         return
-        elif formatted_message[:5] == 'сброс':
-            if len(formatted_message.split(' ')) == 2:
-                reset_id = formatted_message[formatted_message.find(' ')+1:]
-                if reset_id.isdigit():
-                    if int(reset_id) in users_dict:
-                        requests_count[int(reset_id)] = 0
-                        bot.send_message(message.chat.id, f'Сброшен {reset_id}')
-                        return
-        
             
 
     # bans
