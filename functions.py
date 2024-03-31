@@ -363,17 +363,21 @@ def get_single_lessons(login_data):
         soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
 
     rows = soup.find_all('tr')
+    c = 0 # bruh
     for row in rows:
         # lesson
         if row.find(class_='mark_box'):
-            lesson = normalize(row.find(class_='lesson').text)
-            # removing numeration
-            lesson = str(lesson[lesson.find('.')+1:]).strip()
-            # if the string consists of more than just spaces
-            if lesson.replace(' ', ''):
-                # deleting duplicate lessons
-                if result_message[-len(lesson)-1:] != lesson+'\n':
-                    result_message += lesson+'\n'
+            if c > 6: # bruh
+                lesson = normalize(row.find(class_='lesson').text)
+                # removing numeration
+                lesson = str(lesson[lesson.find('.')+1:]).strip()
+                # if the string consists of more than just spaces
+                if lesson.replace(' ', ''):
+                    # deleting duplicate lessons
+                    if result_message[-len(lesson)-1:] != lesson+'\n':
+                        result_message += lesson+'\n'
+        else:
+            c += 1 # bruh
     
     res_list = result_message.split("\n")
     res_dict = dict(Counter(res_list))
@@ -412,42 +416,46 @@ def get_marks_dict(login_data, previous_quarter=False):
         print(br.response())
         soup = BeautifulSoup(br.response(), 'html5lib', from_encoding="utf8")
         rows = soup.find_all('tr')
+        c = 0 # bruh
         for row in rows:
             # checking if it's lesson
             if row.find(class_='mark_box'):
-                # checking for a mark
-                if row.find(class_='mark_box').find('strong'):
-                    mark = normalize(row.find(class_='mark_box').find('strong').text)
-                    normalize_mark = ''
-                    for letter in mark:
-                        if letter.isdigit() or letter == '/':
-                            normalize_mark += letter
-                    mark = str(normalize_mark)
-                    if mark:
-                        # double mark
-                        if '/' in mark:
-                            mark = mark.split('/')
-                        else:
-                            mark = [mark]
+                if c > 6: # bruh
+                    # checking for a mark
+                    if row.find(class_='mark_box').find('strong'):
+                        mark = normalize(row.find(class_='mark_box').find('strong').text)
+                        normalize_mark = ''
+                        for letter in mark:
+                            if letter.isdigit() or letter == '/':
+                                normalize_mark += letter
+                        mark = str(normalize_mark)
+                        if mark:
+                            # double mark
+                            if '/' in mark:
+                                mark = mark.split('/')
+                            else:
+                                mark = [mark]
+                            lesson = row.find(class_='lesson')
+                            lesson = normalize(lesson.find('span').text)
+                            # removing numeration
+                            lesson = lesson[lesson.find('.')+1:].strip()
+                            if lesson == "Рус. яз.(урок без даты)":
+                                    lesson = "Рус. яз."
+                            for el in mark:
+                                if str(el).isdigit():
+                                    el = int(el)
+                                    if lesson in marks:
+                                        marks[lesson].append(el)
+                                    else:
+                                        marks[lesson] = [el]
+                    else:
                         lesson = row.find(class_='lesson')
                         lesson = normalize(lesson.find('span').text)
                         # removing numeration
-                        lesson = lesson[lesson.find('.')+1:].strip()
-                        if lesson == "Рус. яз.(урок без даты)":
-                                lesson = "Рус. яз."
-                        for el in mark:
-                            if str(el).isdigit():
-                                el = int(el)
-                                if lesson in marks:
-                                    marks[lesson].append(el)
-                                else:
-                                    marks[lesson] = [el]
-                else:
-                    lesson = row.find(class_='lesson')
-                    lesson = normalize(lesson.find('span').text)
-                    # removing numeration
-                    lesson = lesson[lesson.find('.') + 1:].strip()
-                    lessons.add(lesson)
+                        lesson = lesson[lesson.find('.') + 1:].strip()
+                        lessons.add(lesson)
+            else:
+                c += 1 # bruh
         # go to next week
         if soup.find(class_='next'):
             next_week = soup.find(class_='next').get('send_to')
