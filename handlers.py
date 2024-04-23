@@ -1,4 +1,4 @@
-from pyrogram import Client, filters 
+from pyrogram import filters 
 from pyrogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from db import *
 from functions import get_marks, get_hometask
@@ -75,6 +75,7 @@ def handlers(app):
                 hometask = await get_hometask(get_login(user_id), get_password(user_id), Q_NUM)
             except Exception as e:
                 await message.reply(f'Чет ошибка какая-то: {e}')
+                await app.send_message(LOG_CHAT_ID, f"User {user_id} (@{message.from_user.username}) got exception '{e}' while getting hometask")
                 return
             inlineKeyboard = [
                 [InlineKeyboardButton("<--", callback_data="previous_1"),
@@ -98,10 +99,11 @@ def handlers(app):
                 marks_out = await get_marks(get_login(user_id), get_password(user_id), Q_NUM, START_FROM, PREV_Q_NUM, PREV_START_FROM, PARSE_PREVIOUS, get_pastMarks(user_id))
             except Exception as e:
                 await message.reply(f'Чет ошибка какая-то: {e}')
-                await app.send_message(LOG_CHAT_ID, f"User {user_id} (@{message.from_user.username}) got exception '{e}' while getting hometask")
+                await app.send_message(LOG_CHAT_ID, f"User {user_id} (@{message.from_user.username}) got exception '{e}' while getting marks")
                 return
             if type(marks_out) == str:
                 await message.reply(marks_out)
+                await app.send_message(LOG_CHAT_ID, f"User {user_id} (@{message.from_user.username}) got exception '{marks_out}' while getting marks")
                 return
             marks = marks_out[:2]
             past_marks = marks_out[2]
