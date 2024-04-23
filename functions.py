@@ -1,5 +1,4 @@
 import aiohttp
-import asyncio
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, timezone
 from math import ceil, modf

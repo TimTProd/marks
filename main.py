@@ -2,7 +2,6 @@ from pyrogram import Client, enums
 from handlers import handlers
 from callbacks import callbacks
 from config import *
-import numpy as np
 
 api_id = API_ID
 api_hash = API_HASH

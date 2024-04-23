@@ -1,6 +1,6 @@
 from functions import get_hometask
 from db import get_login, get_password
-from config import Q_NUM, START_FROM, LOG_CHAT_ID
+from config import Q_NUM, LOG_CHAT_ID
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 def callbacks(app):
