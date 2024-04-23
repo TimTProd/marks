@@ -263,7 +263,7 @@ async def get_single_lessons(user_url, session, q_num):
 
     return out
 
-async def get_hometask(login, password, q_num, start_from):
+async def get_hometask(login, password, q_num, scroll="start"):
     result_message = 'Д/з:\n'
 
     data = await log_in(login, password)
@@ -286,6 +286,24 @@ async def get_hometask(login, password, q_num, start_from):
         response = await session.get(user_url + next_week_link[next_week_link.find('/dnevnik'):])
         # changing info
         soup = BeautifulSoup(await response.text(), 'html5lib')
+    
+    # callbacks
+    if scroll == "start":
+        pass
+    elif scroll.startswith('next_'):
+        n = int(scroll.split("_")[1])
+        for i in range(n):
+            if soup.find(class_='next'):
+                next_week_link = soup.find(class_='next').get('send_to')
+                response = await session.get(user_url + next_week_link[next_week_link.find('/dnevnik'):])
+                soup = BeautifulSoup(await response.text(), 'html5lib')
+    elif scroll.startswith('previous_'):
+        n = int(scroll.split("_")[1])
+        for i in range(n):
+            if soup.find(class_='prev'):
+                previous_week_link = soup.find(class_='prev').get('send_to')
+                response = await session.get(user_url + previous_week_link[previous_week_link.find('/dnevnik'):])
+                soup = BeautifulSoup(await response.text(), 'html5lib')
 
     await session.close()
     

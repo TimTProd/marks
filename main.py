@@ -1,5 +1,6 @@
 from pyrogram import Client, enums
 from handlers import handlers
+from callbacks import callbacks
 from config import *
 import numpy as np
 
@@ -16,4 +17,5 @@ app = Client(
 app.set_parse_mode(enums.ParseMode.HTML)
 
 handlers(app)
+callbacks(app)
 app.run()

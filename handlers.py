@@ -1,5 +1,5 @@
 from pyrogram import Client, filters 
-from pyrogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove
+from pyrogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from db import *
 from functions import get_marks, get_hometask
 from config import OWNER_ID, Q_NUM, START_FROM, PREV_Q_NUM, PREV_START_FROM, PARSE_PREVIOUS, LOG_CHAT_ID
@@ -72,11 +72,15 @@ def handlers(app):
             info_message = await message.reply("Получение дз...")
             user_id = message.from_user.id
             try:
-                hometask = await get_hometask(get_login(user_id), get_password(user_id), Q_NUM, START_FROM)
+                hometask = await get_hometask(get_login(user_id), get_password(user_id), Q_NUM)
             except Exception as e:
                 await message.reply(f'Чет ошибка какая-то: {e}')
                 return
-            await message.reply(hometask, reply_markup=ReplyKeyboardMarkup([["Д/З"], ["Получить оценки"]], resize_keyboard=True))
+            inlineKeyboard = [
+                [InlineKeyboardButton("<--", callback_data="previous_1"),
+                InlineKeyboardButton("-->", callback_data="next_1")]
+            ]
+            await message.reply(hometask, reply_markup=InlineKeyboardMarkup(inlineKeyboard))
             await info_message.delete()
             await app.send_message(LOG_CHAT_ID, f"User {user_id} (@{message.from_user.username}) got hometask")
         else:
